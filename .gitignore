@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# case study
+case_study/*
+!case_study/.gitkeep
