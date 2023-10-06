@@ -1,0 +1,7 @@
+{
+    "app_name": "CrashAnalysisApp",
+    "primary_person_csv_path": "data/PrimaryPerson_use.csv",
+    "units_csv_path": "data/Units_use.csv",
+    "output_results_path": "output/results/",
+    "output_logs_path": "output/logs/"
+}
