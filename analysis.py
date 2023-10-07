@@ -48,6 +48,25 @@ class CrashAnalysisApp:
         
         return state_with_max_female_accidents
     
+    def task_4(self):
+
+        # Load the primary person data
+        primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
+        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
+
+        # Filter and count injuries including death by vehicle make
+        injury_counts_by_make = primary_person_df.join(units_df, on="CRASH_ID")\
+            .filter(col("PRSN_INJRY_SEV_ID") != "NOT INJURED")\
+            .groupBy("VEH_MAKE_ID")\
+            .agg({"CRASH_ID": "count"})\
+            .withColumnRenamed("count(CRASH_ID)", "injury_count")\
+            .orderBy(col("injury_count").desc())
+
+        # Calculate the top 5th to 15th VEH_MAKE_IDs
+        top_makes = injury_counts_by_make.limit(15).subtract(injury_counts_by_make.limit(5))
+
+        return [row["VEH_MAKE_ID"] for row in top_makes.collect()]
+    
     def run(self):
         # Task 1
         task_1_result = self.task_1()
