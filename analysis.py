@@ -27,6 +27,27 @@ class CrashAnalysisApp:
         # Count two-wheelers involved in crashes
         two_wheelers_count = units_df.filter(col("VEH_BODY_STYL_ID").isin(["MOTORCYCLE","POLICE MOTORCYCLE"])).count()
 
+        return two_wheelers_count
+    
+    def task_3(self):
+
+        # Load the primary person data
+        primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
+
+        # Load the units data
+        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
+
+        # Join primary person data with units data to get state information
+        state_with_max_female_accidents = primary_person_df.join(units_df, on="CRASH_ID")\
+            .groupBy("VEH_LIC_STATE_ID")\
+            .agg({"CRASH_ID": "count"})\
+            .withColumnRenamed("count(CRASH_ID)", "accident_count")\
+            .orderBy(col("accident_count").desc())\
+            .select("VEH_LIC_STATE_ID")\
+            .first()["VEH_LIC_STATE_ID"]
+        
+        return state_with_max_female_accidents
+    
     def run(self):
         # Task 1
         task_1_result = self.task_1()
