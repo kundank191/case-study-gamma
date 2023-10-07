@@ -30,6 +30,10 @@ class CrashAnalysisApp:
         self.spark = spark
         self.config = config
 
+        # pre storing primary person df and units df since this dataframe is used in almost all the tasks
+        self.primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
+        self.units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
+
     def write_to_output_file(self, task_name, result):
         output_file = self.config.get("output_file")
         current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -41,10 +45,8 @@ class CrashAnalysisApp:
         """
         Analytics 1: Find the number of crashes (accidents) in which number of persons killed are male?
         """
-        primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
-
         # Filter and count crashes where the number of killed persons is male
-        male_fatalities_count = primary_person_df.filter(
+        male_fatalities_count = self.primary_person_df.filter(
             (col("PRSN_GNDR_ID") == "MALE") &
             (col("PRSN_INJRY_SEV_ID") == "KILLED")
         ).select("CRASH_ID").distinct().count()
@@ -56,9 +58,8 @@ class CrashAnalysisApp:
         """
         Analysis 2: How many two wheelers are booked for crashes? 
         """
-        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
         # Count two-wheelers involved in crashes
-        two_wheelers_count = units_df.filter(col("VEH_BODY_STYL_ID").isin(["MOTORCYCLE","POLICE MOTORCYCLE"])).count()
+        two_wheelers_count = self.units_df.filter(col("VEH_BODY_STYL_ID").isin(["MOTORCYCLE","POLICE MOTORCYCLE"])).count()
 
         return two_wheelers_count
     
@@ -67,14 +68,8 @@ class CrashAnalysisApp:
         """
         Analysis 3: Which state has highest number of accidents in which females are involved?
         """
-        # Load the primary person data
-        primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
-
-        # Load the units data
-        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
-
         # Join primary person data with units data to get state information
-        state_with_max_female_accidents = primary_person_df.join(units_df, on="CRASH_ID")\
+        state_with_max_female_accidents = self.primary_person_df.join(self.units_df, on="CRASH_ID")\
             .groupBy("VEH_LIC_STATE_ID")\
             .agg({"CRASH_ID": "count"})\
             .withColumnRenamed("count(CRASH_ID)", "accident_count")\
@@ -89,13 +84,8 @@ class CrashAnalysisApp:
         """
         Analysis 4: Which are the Top 5th to 15th VEH_MAKE_IDs that contribute to a largest number of injuries including death
         """
-
-        # Load the primary person data
-        primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
-        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
-
         # Filter and count injuries including death by vehicle make
-        injury_counts_by_make = primary_person_df.join(units_df, on="CRASH_ID")\
+        injury_counts_by_make = self.primary_person_df.join(self.units_df, on="CRASH_ID")\
             .filter(col("PRSN_INJRY_SEV_ID") != "NOT INJURED")\
             .groupBy("VEH_MAKE_ID")\
             .agg({"CRASH_ID": "count"})\
@@ -112,12 +102,8 @@ class CrashAnalysisApp:
         """
         Analysis 5: For all the body styles involved in crashes, mention the top ethnic user group of each unique body style  
         """
-
-        primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
-        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
-
         # Group by body style and ethnicity to find the top user group for each body style
-        top_ethnic_user_groups = primary_person_df.join(units_df, on="CRASH_ID")\
+        top_ethnic_user_groups = self.primary_person_df.join(self.units_df, on="CRASH_ID")\
             .groupBy("VEH_BODY_STYL_ID", "PRSN_ETHNICITY_ID")\
             .agg({"CRASH_ID": "count"})\
             .withColumnRenamed("count(CRASH_ID)", "user_group_count")\
@@ -140,12 +126,8 @@ class CrashAnalysisApp:
         """
         Analysis 6: Among the crashed cars, what are the Top 5 Zip Codes with highest number crashes with alcohols as the contributing factor to a crash (Use Driver Zip Code)
         """
-
-        primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
-        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
-
         # Filter and count crashes with alcohol as the contributing factor
-        alcohol_related_crashes = primary_person_df.join(units_df, on="CRASH_ID")\
+        alcohol_related_crashes = self.primary_person_df.join(self.units_df, on="CRASH_ID")\
             .filter(
                 (col("CONTRIB_FACTR_1_ID").contains("ALCOHOL")) |
                 (col("CONTRIB_FACTR_2_ID").contains("ALCOHOL"))
@@ -171,10 +153,8 @@ class CrashAnalysisApp:
         """
         Analysis 7: Count of Distinct Crash IDs where No Damaged Property was observed and Damage Level (VEH_DMAG_SCL~) is above 4 and car avails Insurance
         """
-
-        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
         # Filter crashes with no damaged property, damage level > 4, and car avails insurance
-        filtered_crashes = units_df.filter(
+        filtered_crashes = self.units_df.filter(
             (substring(col("VEH_DMAG_SCL_1_ID"), -1, 1).cast("int") > 4) &
             (substring(col("VEH_DMAG_SCL_2_ID"), -1, 1).cast("int") > 4) &
             (col("FIN_RESP_TYPE_ID") == "PROOF OF LIABILITY INSURANCE")
@@ -192,19 +172,15 @@ class CrashAnalysisApp:
         has licensed Drivers, used top 10 used vehicle colours and has car licensed with the 
         Top 25 states with highest number of offences (to be deduced from the data)
         """
-
-        primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
-        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
-
         # Filter drivers charged with speeding-related offenses
-        speeding_offenses = primary_person_df.join(units_df, on = 'CRASH_ID')\
+        speeding_offenses = self.primary_person_df.join(self.units_df, on = 'CRASH_ID')\
             .filter(
                 (col("CONTRIB_FACTR_1_ID").contains("SPEED")) |
                 (col("CONTRIB_FACTR_2_ID").contains("SPEED"))
             )
 
         # Ge the top 10 colors
-        top_10_colors = units_df\
+        top_10_colors = self.units_df\
             .groupBy("VEH_COLOR_ID")\
             .count()\
             .orderBy(col("count").desc())\
@@ -220,7 +196,7 @@ class CrashAnalysisApp:
         )
 
         # Filter cars licensed with the top 25 states with the highest number of offenses
-        top_25_states = units_df.groupBy("VEH_LIC_STATE_ID")\
+        top_25_states = self.units_df.groupBy("VEH_LIC_STATE_ID")\
             .agg({"CRASH_ID": "count"})\
             .withColumnRenamed("count(CRASH_ID)", "offense_count")\
             .orderBy(col("offense_count").desc())\
