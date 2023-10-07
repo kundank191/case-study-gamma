@@ -1,7 +1,10 @@
 {
     "app_name": "CrashAnalysisApp",
-    "primary_person_csv_path": "data/PrimaryPerson_use.csv",
+    "primary_person_csv_path": "data/Primary_Person_use.csv",
     "units_csv_path": "data/Units_use.csv",
-    "output_results_path": "output/results/",
-    "output_logs_path": "output/logs/"
+    "charge_use_csv_path" : "data/Charge_use.csv",
+    "damages_use_csv_path" : "data/Damages_use.csv",
+    "endorse_use_csv_path" : "data/Endorse_use.csv",
+    "restrict_use_csv_path" : "data/Restrict_use.csv",
+    "output_file": "output/results.txt"
 }

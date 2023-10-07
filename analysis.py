@@ -1,8 +1,25 @@
 import json
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, max as pyspark_max, dense_rank
-from pyspark.sql.functions import substring
-from pyspark.sql.window import Window
+from pyspark.sql.functions import col, substring
+from datetime import datetime
+
+def print_function_execution_time(func):
+    """
+    Annotation function will run before and after and will give the execution details
+    """
+    def wrapper(*args, **kwargs):
+        function_name = func.__name__
+        start_time = datetime.now()
+        print(f"{function_name} started at {start_time}")
+
+        result = func(*args, **kwargs)
+
+        end_time = datetime.now()
+        execution_time = end_time - start_time
+        print(f"{function_name} finished at {end_time} , Time Taken : {execution_time}")
+
+        return result
+    return wrapper
 
 # Create a class for the Crash Analysis Application
 class CrashAnalysisApp:
@@ -10,6 +27,13 @@ class CrashAnalysisApp:
         self.spark = spark
         self.config = config
 
+    def write_to_output_file(self, task_name, result):
+        output_file = self.config.get("output_file")
+        current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(output_file, "a") as file:
+            file.write(f"{current_datetime} - {task_name}: {result}\n")
+    
+    @print_function_execution_time
     def task_1(self):
         # Task 1: Find the number of crashes (accidents) in which the number of persons killed are male
         primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
@@ -22,6 +46,7 @@ class CrashAnalysisApp:
 
         return male_fatalities_count
 
+    @print_function_execution_time
     def task_2(self):
         # Task 2
         units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
@@ -30,6 +55,7 @@ class CrashAnalysisApp:
 
         return two_wheelers_count
     
+    @print_function_execution_time
     def task_3(self):
 
         # Load the primary person data
@@ -49,6 +75,7 @@ class CrashAnalysisApp:
         
         return state_with_max_female_accidents
     
+    @print_function_execution_time
     def task_4(self):
 
         # Load the primary person data
@@ -68,6 +95,7 @@ class CrashAnalysisApp:
 
         return [row["VEH_MAKE_ID"] for row in top_makes.collect()]
     
+    @print_function_execution_time
     def task_5(self):
 
         primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
@@ -92,6 +120,7 @@ class CrashAnalysisApp:
 
         return results
     
+    @print_function_execution_time
     def task_6(self):
 
         primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
@@ -119,6 +148,7 @@ class CrashAnalysisApp:
 
         return [row["DRVR_ZIP"] for row in top_zip_codes.collect()]
     
+    @print_function_execution_time
     def task_7(self):
 
         units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
@@ -134,11 +164,12 @@ class CrashAnalysisApp:
 
         return distinct_crash_count
     
+    @print_function_execution_time
     def task_8(self):
 
         primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
         units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
-        
+
         # Filter drivers charged with speeding-related offenses
         speeding_offenses = primary_person_df.join(units_df, on = 'CRASH_ID')\
             .filter(
@@ -146,6 +177,7 @@ class CrashAnalysisApp:
                 (col("CONTRIB_FACTR_2_ID").contains("SPEED"))
             )
 
+        # Ge the top 10 colors
         top_10_colors = units_df\
             .groupBy("VEH_COLOR_ID")\
             .count()\
@@ -168,6 +200,7 @@ class CrashAnalysisApp:
             .orderBy(col("offense_count").desc())\
             .limit(25)
 
+        # Get the cars with top states
         cars_with_top_states = licensed_drivers_top_car_color.join(top_25_states, on="VEH_LIC_STATE_ID", how="inner")
 
         # Group by vehicle make and count offenses
@@ -182,38 +215,37 @@ class CrashAnalysisApp:
     def run(self):
         # Task 1
         task_1_result = self.task_1()
-        print(f"Task 1: Number of crashes with male fatalities: {task_1_result}")
+        self.write_to_output_file("Task 1", f"Number of crashes with male fatalities: {task_1_result}")
 
         # Task 2
         task_2_result = self.task_2()
-        print(f"Task 2: Number of two-wheelers involved in crashes: {task_2_result}")
+        self.write_to_output_file("Task 2", f"Number of two-wheelers involved in crashes: {task_2_result}")
 
         # Task 3
         task_3_result = self.task_3()
-        print(f"Task 3: State with the highest number of accidents involving females: {task_3_result}")
+        self.write_to_output_file("Task 3", f"State with the highest number of accidents involving females: {task_3_result}")
 
         # Task 4
         task_4_result = self.task_4()
-        print(f"Task 4: Top 5th to 15th VEH_MAKE_IDs with the largest number of injuries: {task_4_result}")
+        self.write_to_output_file("Task 4", f"Top 5th to 15th VEH_MAKE_IDs with the largest number of injuries: {task_4_result}")
 
         # Task 5
         task_5_result = self.task_5()
-        print("Task 5: Top ethnic user groups for each unique body style:")
+        self.write_to_output_file("Task 5", "Top ethnic user groups for each unique body style:")
         for body_style, result in task_5_result.items():
-            print(f"  Body Style: {body_style}, Ethnicity: {result['ethnicity']}, Count: {result['count']}")
+            self.write_to_output_file("Task 5", f"  Body Style: {body_style}, Ethnicity: {result['ethnicity']}, Count: {result['count']}")
 
         # Task 6
         task_6_result = self.task_6()
-        print(f"Task 6: Top 5 Zip Codes with the highest number of alcohol-related crashes: {task_6_result}")
+        self.write_to_output_file("Task 6", f"Top 5 Zip Codes with the highest number of alcohol-related crashes: {task_6_result}")
 
         # Task 7
         task_7_result = self.task_7()
-        print(f"Task 7: Count of distinct Crash IDs meeting specified criteria: {task_7_result}")
+        self.write_to_output_file("Task 7", f"Count of distinct Crash IDs meeting specified criteria: {task_7_result}")
 
         # Task 8
         task_8_result = self.task_8()
-        print(f"Task 8: Top 5 Vehicle Makes with specified criteria: {task_8_result}")
-
+        self.write_to_output_file("Task 8", f"Top 5 Vehicle Makes with specified criteria: {task_8_result}")
 
 def main():
     # Load configuration from config.json
