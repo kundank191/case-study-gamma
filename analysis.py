@@ -23,6 +23,9 @@ def print_function_execution_time(func):
 
 # Create a class for the Crash Analysis Application
 class CrashAnalysisApp:
+    """
+    This is the main class all the tasks are its functions and can be executed separately
+    """
     def __init__(self, spark, config):
         self.spark = spark
         self.config = config
@@ -35,7 +38,9 @@ class CrashAnalysisApp:
     
     @print_function_execution_time
     def task_1(self):
-        # Task 1: Find the number of crashes (accidents) in which the number of persons killed are male
+        """
+        Analytics 1: Find the number of crashes (accidents) in which number of persons killed are male?
+        """
         primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
 
         # Filter and count crashes where the number of killed persons is male
@@ -48,7 +53,9 @@ class CrashAnalysisApp:
 
     @print_function_execution_time
     def task_2(self):
-        # Task 2
+        """
+        Analysis 2: How many two wheelers are booked for crashes? 
+        """
         units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
         # Count two-wheelers involved in crashes
         two_wheelers_count = units_df.filter(col("VEH_BODY_STYL_ID").isin(["MOTORCYCLE","POLICE MOTORCYCLE"])).count()
@@ -57,7 +64,9 @@ class CrashAnalysisApp:
     
     @print_function_execution_time
     def task_3(self):
-
+        """
+        Analysis 3: Which state has highest number of accidents in which females are involved?
+        """
         # Load the primary person data
         primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
 
@@ -77,6 +86,9 @@ class CrashAnalysisApp:
     
     @print_function_execution_time
     def task_4(self):
+        """
+        Analysis 4: Which are the Top 5th to 15th VEH_MAKE_IDs that contribute to a largest number of injuries including death
+        """
 
         # Load the primary person data
         primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
@@ -97,6 +109,9 @@ class CrashAnalysisApp:
     
     @print_function_execution_time
     def task_5(self):
+        """
+        Analysis 5: For all the body styles involved in crashes, mention the top ethnic user group of each unique body style  
+        """
 
         primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
         units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
@@ -122,6 +137,9 @@ class CrashAnalysisApp:
     
     @print_function_execution_time
     def task_6(self):
+        """
+        Analysis 6: Among the crashed cars, what are the Top 5 Zip Codes with highest number crashes with alcohols as the contributing factor to a crash (Use Driver Zip Code)
+        """
 
         primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
         units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
@@ -150,6 +168,9 @@ class CrashAnalysisApp:
     
     @print_function_execution_time
     def task_7(self):
+        """
+        Analysis 7: Count of Distinct Crash IDs where No Damaged Property was observed and Damage Level (VEH_DMAG_SCL~) is above 4 and car avails Insurance
+        """
 
         units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
         # Filter crashes with no damaged property, damage level > 4, and car avails insurance
@@ -166,6 +187,11 @@ class CrashAnalysisApp:
     
     @print_function_execution_time
     def task_8(self):
+        """
+        Analysis 8: Determine the Top 5 Vehicle Makes where drivers are charged with speeding related offences, 
+        has licensed Drivers, used top 10 used vehicle colours and has car licensed with the 
+        Top 25 states with highest number of offences (to be deduced from the data)
+        """
 
         primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
         units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
@@ -213,6 +239,10 @@ class CrashAnalysisApp:
         return [row["VEH_MAKE_ID"] for row in top_vehicle_makes.collect()]
     
     def run(self):
+        """
+        Function will call all the tasks one by one
+        results will be stored in output/results.txt
+        """
         # Task 1
         task_1_result = self.task_1()
         self.write_to_output_file("Task 1", f"Number of crashes with male fatalities: {task_1_result}")
