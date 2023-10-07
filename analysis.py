@@ -134,6 +134,51 @@ class CrashAnalysisApp:
 
         return distinct_crash_count
     
+    def task_8(self):
+
+        primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
+        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
+        
+        # Filter drivers charged with speeding-related offenses
+        speeding_offenses = primary_person_df.join(units_df, on = 'CRASH_ID')\
+            .filter(
+                (col("CONTRIB_FACTR_1_ID").contains("SPEED")) |
+                (col("CONTRIB_FACTR_2_ID").contains("SPEED"))
+            )
+
+        top_10_colors = units_df\
+            .groupBy("VEH_COLOR_ID")\
+            .count()\
+            .orderBy(col("count").desc())\
+            .limit(10)\
+            .select("VEH_COLOR_ID")
+
+        top_10_colors_list = [row["VEH_COLOR_ID"] for row in top_10_colors.collect()]
+
+        # Filter drivers with licenses and top 10 used vehicle colors
+        licensed_drivers_top_car_color = speeding_offenses.filter(
+            (col("DRVR_LIC_TYPE_ID") == "DRIVER LICENSE") &
+            (col("VEH_COLOR_ID").isin(top_10_colors_list))
+        )
+
+        # Filter cars licensed with the top 25 states with the highest number of offenses
+        top_25_states = units_df.groupBy("VEH_LIC_STATE_ID")\
+            .agg({"CRASH_ID": "count"})\
+            .withColumnRenamed("count(CRASH_ID)", "offense_count")\
+            .orderBy(col("offense_count").desc())\
+            .limit(25)
+
+        cars_with_top_states = licensed_drivers_top_car_color.join(top_25_states, on="VEH_LIC_STATE_ID", how="inner")
+
+        # Group by vehicle make and count offenses
+        top_vehicle_makes = cars_with_top_states.groupBy("VEH_MAKE_ID")\
+            .agg({"CRASH_ID": "count"})\
+            .withColumnRenamed("count(CRASH_ID)", "offense_count")\
+            .orderBy(col("offense_count").desc())\
+            .limit(5)
+
+        return [row["VEH_MAKE_ID"] for row in top_vehicle_makes.collect()]
+    
     def run(self):
         # Task 1
         task_1_result = self.task_1()
