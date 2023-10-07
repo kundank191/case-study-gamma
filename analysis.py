@@ -67,6 +67,57 @@ class CrashAnalysisApp:
 
         return [row["VEH_MAKE_ID"] for row in top_makes.collect()]
     
+    def task_5(self):
+
+        primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
+        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
+
+        # Group by body style and ethnicity to find the top user group for each body style
+        top_ethnic_user_groups = primary_person_df.join(units_df, on="CRASH_ID")\
+            .groupBy("VEH_BODY_STYL_ID", "PRSN_ETHNICITY_ID")\
+            .agg({"CRASH_ID": "count"})\
+            .withColumnRenamed("count(CRASH_ID)", "user_group_count")\
+            .orderBy("VEH_BODY_STYL_ID", col("user_group_count").desc())
+
+        # Collect the results
+        results = {}
+        for row in top_ethnic_user_groups.collect():
+            body_style = row["VEH_BODY_STYL_ID"]
+            ethnicity = row["PRSN_ETHNICITY_ID"]
+            user_group_count = row["user_group_count"]
+
+            if body_style not in results:
+                results[body_style] = {"ethnicity": ethnicity, "count": user_group_count}
+
+        return results
+    
+    def task_6(self):
+
+        primary_person_df = self.spark.read.csv(self.config["primary_person_csv_path"], header = True)
+        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
+
+        # Filter and count crashes with alcohol as the contributing factor
+        alcohol_related_crashes = primary_person_df.join(units_df, on="CRASH_ID")\
+            .filter(
+                (col("CONTRIB_FACTR_1_ID").contains("ALCOHOL")) |
+                (col("CONTRIB_FACTR_2_ID").contains("ALCOHOL"))
+            )
+
+        # We only need cards
+        crashed_cars = alcohol_related_crashes.filter(
+            col("VEH_BODY_STYL_ID").contains("CAR") &
+            col("DRVR_ZIP").isNotNull()
+        )
+
+        # Group by driver zip code and count crashes
+        top_zip_codes = crashed_cars.groupBy("DRVR_ZIP")\
+            .agg({"CRASH_ID": "count"})\
+            .withColumnRenamed("count(CRASH_ID)", "crash_count")\
+            .orderBy(col("crash_count").desc())\
+            .limit(5)
+
+        return [row["DRVR_ZIP"] for row in top_zip_codes.collect()]
+    
     def run(self):
         # Task 1
         task_1_result = self.task_1()
