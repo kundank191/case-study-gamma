@@ -1,6 +1,7 @@
 import json
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, max as pyspark_max, dense_rank
+from pyspark.sql.functions import substring
 from pyspark.sql.window import Window
 
 # Create a class for the Crash Analysis Application
@@ -117,6 +118,21 @@ class CrashAnalysisApp:
             .limit(5)
 
         return [row["DRVR_ZIP"] for row in top_zip_codes.collect()]
+    
+    def task_7(self):
+
+        units_df = self.spark.read.csv(self.config["units_csv_path"], header = True)
+        # Filter crashes with no damaged property, damage level > 4, and car avails insurance
+        filtered_crashes = units_df.filter(
+            (substring(col("VEH_DMAG_SCL_1_ID"), -1, 1).cast("int") > 4) &
+            (substring(col("VEH_DMAG_SCL_2_ID"), -1, 1).cast("int") > 4) &
+            (col("FIN_RESP_TYPE_ID") == "PROOF OF LIABILITY INSURANCE")
+        )
+
+        # Count distinct crash IDs
+        distinct_crash_count = filtered_crashes.select("CRASH_ID").distinct().count()
+
+        return distinct_crash_count
     
     def run(self):
         # Task 1
