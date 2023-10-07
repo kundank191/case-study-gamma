@@ -106,32 +106,4 @@ The results of each task are stored in the output file specified in the `config.
 2023-10-07 20:33:22 - Task 6: Top 5 Zip Codes with the highest number of alcohol-related crashes: ['76010', '75052', '78521', '75067', '76017']
 2023-10-07 20:33:24 - Task 7: Count of distinct Crash IDs meeting specified criteria: 788
 2023-10-07 20:33:29 - Task 8: Top 5 Vehicle Makes with specified criteria: ['FORD', 'CHEVROLET', 'TOYOTA', 'DODGE', 'HONDA']
-2023-10-07 20:37:33 - Task 1: Number of crashes with male fatalities: 180
-2023-10-07 20:37:33 - Task 2: Number of two-wheelers involved in crashes: 784
-2023-10-07 20:37:36 - Task 3: State with the highest number of accidents involving females: TX
-2023-10-07 20:37:38 - Task 4: Top 5th to 15th VEH_MAKE_IDs with the largest number of injuries: ['HONDA', 'NA', 'GMC', 'JEEP', 'HYUNDAI', 'KIA', 'CHRYSLER', 'FREIGHTLINER', 'MAZDA', 'UNKNOWN']
-2023-10-07 20:37:41 - Task 5: Top ethnic user groups for each unique body style:
-2023-10-07 20:37:41 - Task 5:   Body Style: AMBULANCE, Ethnicity: WHITE, Count: 97
-2023-10-07 20:37:41 - Task 5:   Body Style: BUS, Ethnicity: HISPANIC, Count: 391
-2023-10-07 20:37:41 - Task 5:   Body Style: FARM EQUIPMENT, Ethnicity: WHITE, Count: 63
-2023-10-07 20:37:41 - Task 5:   Body Style: FIRE TRUCK, Ethnicity: WHITE, Count: 112
-2023-10-07 20:37:41 - Task 5:   Body Style: MOTORCYCLE, Ethnicity: WHITE, Count: 848
-2023-10-07 20:37:41 - Task 5:   Body Style: NA, Ethnicity: WHITE, Count: 5693
-2023-10-07 20:37:41 - Task 5:   Body Style: NEV-NEIGHBORHOOD ELECTRIC VEHICLE, Ethnicity: WHITE, Count: 10
-2023-10-07 20:37:41 - Task 5:   Body Style: NOT REPORTED, Ethnicity: HISPANIC, Count: 2
-2023-10-07 20:37:41 - Task 5:   Body Style: OTHER  (EXPLAIN IN NARRATIVE), Ethnicity: WHITE, Count: 459
-2023-10-07 20:37:41 - Task 5:   Body Style: PASSENGER CAR, 2-DOOR, Ethnicity: WHITE, Count: 9877
-2023-10-07 20:37:41 - Task 5:   Body Style: PASSENGER CAR, 4-DOOR, Ethnicity: WHITE, Count: 58312
-2023-10-07 20:37:41 - Task 5:   Body Style: PICKUP, Ethnicity: WHITE, Count: 38609
-2023-10-07 20:37:41 - Task 5:   Body Style: POLICE CAR/TRUCK, Ethnicity: WHITE, Count: 366
-2023-10-07 20:37:41 - Task 5:   Body Style: POLICE MOTORCYCLE, Ethnicity: HISPANIC, Count: 3
-2023-10-07 20:37:41 - Task 5:   Body Style: SPORT UTILITY VEHICLE, Ethnicity: WHITE, Count: 33902
-2023-10-07 20:37:41 - Task 5:   Body Style: TRUCK, Ethnicity: WHITE, Count: 4204
-2023-10-07 20:37:41 - Task 5:   Body Style: TRUCK TRACTOR, Ethnicity: WHITE, Count: 5815
-2023-10-07 20:37:41 - Task 5:   Body Style: UNKNOWN, Ethnicity: WHITE, Count: 1178
-2023-10-07 20:37:41 - Task 5:   Body Style: VAN, Ethnicity: WHITE, Count: 5291
-2023-10-07 20:37:41 - Task 5:   Body Style: YELLOW SCHOOL BUS, Ethnicity: WHITE, Count: 264
-2023-10-07 20:37:44 - Task 6: Top 5 Zip Codes with the highest number of alcohol-related crashes: ['76010', '75052', '78521', '75067', '76017']
-2023-10-07 20:37:45 - Task 7: Count of distinct Crash IDs meeting specified criteria: 788
-2023-10-07 20:37:49 - Task 8: Top 5 Vehicle Makes with specified criteria: ['FORD', 'CHEVROLET', 'TOYOTA', 'DODGE', 'HONDA']
 ```
