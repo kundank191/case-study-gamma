@@ -16,4 +16,4 @@ COPY . .
 # ENV
 ENV PORT 80
 # Run the application
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 random_flask:app
