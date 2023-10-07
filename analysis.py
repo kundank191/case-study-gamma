@@ -277,6 +277,8 @@ class CrashAnalysisApp:
         task_8_result = self.task_8()
         self.write_to_output_file("Task 8", f"Top 5 Vehicle Makes with specified criteria: {task_8_result}")
 
+        print('Check results in output/results.txt')
+
 def main():
     # Load configuration from config.json
     with open('config.json') as config_file:
